@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peaceful Life Finance Tracker</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --warning: #e74c3c;
+            --text: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 { color: var(--primary); }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #219150;
+        }
+
+        .alert-box {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .summary-metric {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .overbudget {
+            color: var(--warning);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .delete-btn {
+            background-color: var(--warning);
+            padding: 5px 10px;
+            margin: 0;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌱 Peaceful Life Finance Tracker</h1>
+    <p>Track your budget, avoid going overboard, and build long-term financial stability.</p>
+
+    <!-- Global Alert Banner -->
+    <div id="alertBanner" class="alert-box"></div>
+
+    <!-- Income Input Card -->
+    <div class="card">
+        <h2>1. Enter Monthly Income</h2>
+        <label for="monthlySalary">Monthly Salary / Income ($):</label>
+        <input type="number" id="monthlySalary" placeholder="e.g., 4000" onchange="updateTracker()">
+    </div>
+
+    <!-- Recommended Budget Plan -->
+    <div class="card">
+        <h2>2. Recommended Plan (50/30/20 Rule)</h2>
+        <div class="grid">
+            <div>
+                <strong>Needs Target (50%):</strong>
+                <p id="targetNeeds">$0.00</p>
+            </div>
+            <div>
+                <strong>Wants Target (30%):</strong>
+                <p id="targetWants">$0.00</p>
+            </div>
+            <div>
+                <strong>Savings/Debt Target (20%):</strong>
+                <p id="targetSavings">$0.00</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Card -->
+    <div class="card">
+        <h2>3. Add an Expense</h2>
+        <form id="expenseForm">
+            <div class="grid">
+                <div>
+                    <label for="expenseName">Expense Name:</label>
+                    <input type="text" id="expenseName" placeholder="e.g., Grocery Shopping" required>
+                </div>
+                <div>
+                    <label for="expenseAmount">Amount ($):</label>
+                    <input type="number" id="expenseAmount" placeholder="e.g., 150" required>
+                </div>
+                <div>
+                    <label for="expenseCategory">Category:</label>
+                    <select id="expenseCategory" required>
+                        <option value="Groceries (Need)">Groceries (Need)</option>
+                        <option value="Healthcare (Need)">Healthcare (Need)</option>
+                        <option value="Educational Bills (Need)">Educational Bills (Need)</option>
+                        <option value="Trips & Travel (Want)">Trips & Travel (Want)</option>
+                        <option value="Shopping (Want)">Shopping (Want)</option>
+                        <option value="Investment (Savings)">Investment (Savings)</option>
+                        <option value="Loans to be Cleared (Debt)">Loans / Debt Clearance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit">Add Expense</button>
+        </form>
+    </div>
+
+    <!-- Spending Overview -->
+    <div class="card">
+        <h2>4. Financial Summary</h2>
+        <div class="grid">
+            <div>Total Salary: <span id="summarySalary" class="summary-metric">$0.00</span></div>
+            <div>Total Spent: <span id="summarySpent" class="summary-metric">$0.00</span></div>
+            <div>Remaining Balance: <span id="summaryBalance" class="summary-metric">$0.00</span></div>
+        </div>
+
+        <h3 style="margin-top: 20px;">Category Breakdowns</h3>
+        <p>Needs Spent: <span id="spentNeeds">$0.00</span></p>
+        <p>Wants Spent: <span id="spentWants">$0.00</span></p>
+        <p>Savings & Debt Paid: <span id="spentSavings">$0.00</span></p>
+    </div>
+
+    <!-- Smart Recommendations Card -->
+    <div class="card">
+        <h2>💡 Smart Suggestions for Improvement</h2>
+        <ul id="suggestionsList">
+            <li>Enter your salary and expenses above to get personalized suggestions.</li>
+        </ul>
+    </div>
+
+    <!-- Expense History -->
+    <div class="card">
+        <h2>Expense History</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="expenseTableBody">
+                <!-- Dynamic Rows Go Here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // State management using LocalStorage
+    let state = {
+        salary: parseFloat(localStorage.getItem('salary')) || 0,
+        expenses: JSON.parse(localStorage.getItem('expenses')) || []
+    };
+
+    // Initialize inputs
+    document.getElementById('monthlySalary').value = state.salary || '';
+
+    // Handle form submit
+    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('expenseName').value;
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const category = document.getElementById('expenseCategory').value;
+
+        state.expenses.push({ id: Date.now(), name, amount, category });
+        saveAndRender();
+
+        // Reset inputs
+        document.getElementById('expenseName').value = '';
+        document.getElementById('expenseAmount').value = '';
+    });
+
+    // Delete an expense
+    function deleteExpense(id) {
+        state.expenses = state.expenses.filter(item => item.id !== id);
+        saveAndRender();
+    }
+
+    // Save to localStorage and update UI
+    function saveAndRender() {
+        const salaryInput = parseFloat(document.getElementById('monthlySalary').value);
+        state.salary = isNaN(salaryInput) ? 0 : salaryInput;
+
+        localStorage.setItem('salary', state.salary);
+        localStorage.setItem('expenses', JSON.stringify(state.expenses));
+
+        updateTracker();
+    }
+
+    function updateTracker() {
+        const salary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+        state.salary = salary;
+
+        // Targets based on 50/30/20 rule
+        const targetNeeds = salary * 0.50;
+        const targetWants = salary * 0.30;
+        const targetSavings = salary * 0.20;
+
+        document.getElementById('targetNeeds').innerText = `$${targetNeeds.toFixed(2)}`;
+        document.getElementById('targetWants').innerText = `$${targetWants.toFixed(2)}`;
+        document.getElementById('targetSavings').innerText = `$${targetSavings.toFixed(2)}`;
+
+        // Calculate Category Spending
+        let totalSpent = 0;
+        let spentNeeds = 0;
+        let spentWants = 0;
+        let spentSavings = 0;
+
+        state.expenses.forEach(e => {
+            totalSpent += e.amount;
+            if (e.category.includes('(Need)')) spentNeeds += e.amount;
+            else if (e.category.includes('(Want)')) spentWants += e.amount;
+            else spentSavings += e.amount;
+        });
+
+        const balance = salary - totalSpent;
+
+        // Update Summary Metrics
+        document.getElementById('summarySalary').innerText = `$${salary.toFixed(2)}`;
+        document.getElementById('summarySpent').innerText = `$${totalSpent.toFixed(2)}`;
+        
+        const balanceEl = document.getElementById('summaryBalance');
+        balanceEl.innerText = `$${balance.toFixed(2)}`;
+        if (balance < 0) {
+            balanceEl.className = "summary-metric overbudget";
+        } else {
+            balanceEl.className = "summary-metric";
+        }
+
+        document.getElementById('spentNeeds').innerText = `$${spentNeeds.toFixed(2)} (Target: $${targetNeeds.toFixed(2)})`;
+        document.getElementById('spentWants').innerText = `$${spentWants.toFixed(2)} (Target: $${targetWants.toFixed(2)})`;
+        document.getElementById('spentSavings').innerText = `$${spentSavings.toFixed(2)} (Target: $${targetSavings.toFixed(2)})`;
+
+        // Render Expense Table
+        const tbody = document.getElementById('expenseTableBody');
+        tbody.innerHTML = '';
+        state.expenses.forEach(e => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${e.name}</td>
+                <td>${e.category}</td>
+                <td>$${e.amount.toFixed(2)}</td>
+                <td><button class="delete-btn" onclick="deleteExpense(${e.id})">Delete</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Alerts & Suggestions System
+        handleAlertsAndSuggestions(salary, totalSpent, spentNeeds, spentWants, spentSavings, targetNeeds, targetWants, targetSavings);
+    }
+
+    function handleAlertsAndSuggestions(salary, totalSpent, spentNeeds, spentWants, spentSavings, tNeeds, tWants, tSavings) {
+        const alertBanner = document.getElementById('alertBanner');
+        const suggestionsList = document.getElementById('suggestionsList');
+        suggestionsList.innerHTML = '';
+
+        let suggestions = [];
+
+        if (salary === 0) {
+            alertBanner.style.display = 'none';
+            suggestionsList.innerHTML = '<li>Please enter your monthly salary to enable financial analysis.</li>';
+            return;
+        }
+
+        // Global Alert Check
+        if (totalSpent > salary) {
+            alertBanner.style.display = 'block';
+            alertBanner.className = 'alert-box alert-danger';
+            alertBanner.innerHTML = `<strong>⚠️ Warning:</strong> You have gone overboard! Your expenses exceed your salary by <strong>$${(totalSpent - salary).toFixed(2)}</strong>.`;
+        } else {
+            alertBanner.style.display = 'block';
+            alertBanner.className = 'alert-box alert-success';
+            alertBanner.innerHTML = `<strong>✅ Stable Financial Status:</strong> You are living within your monthly income range.`;
+        }
+
+        // Specific Suggestions to improve life peace & stability
+        if (spentWants > tWants) {
+            suggestions.push(`<strong>Reduce Want Spending:</strong> You exceeded your suggested "Wants" budget (Trips, Shopping) by $${(spentWants - tWants).toFixed(2)}. Trimming this back helps build stability.`);
+        }
+
+        if (spentNeeds > tNeeds) {
+            suggestions.push(`<strong>High Essential Expenses:</strong> Needs (Groceries, Healthcare, Education) exceed 50% of your salary. Consider looking for discounts or cheaper alternatives to lower fixed costs.`);
+        }
+
+        if (spentSavings < tSavings) {
+            suggestions.push(`<strong>Increase Investments/Savings:</strong> You are currently allocating less than 20% toward savings, loans, and investments. Prioritize loan payments and savings for long-term peace of mind.`);
+        } else {
+            suggestions.push(`<strong>Great Job:</strong> You are meeting your 20% savings/debt payoff goal! Keep this up to stay financially secure.`);
+        }
+
+        if (totalSpent <= salary && spentWants <= tWants && spentNeeds <= tNeeds) {
+            suggestions.push(`<strong>Ideal Budget:</strong> Your current distribution aligns with a healthy financial plan. Maintain this habit to keep a stress-free lifestyle.`);
+        }
+
+        // Render Suggestions
+        suggestions.forEach(text => {
+            const li = document.createElement('li');
+            li.innerHTML = text;
+            suggestionsList.appendChild(li);
+        });
+    }
+
+    // Initial render call on load
+    updateTracker();
+</script>
+
+</body>
+</html>
